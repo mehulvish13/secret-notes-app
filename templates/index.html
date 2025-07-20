@@ -1,9 +1,29 @@
+<!--
+Secret Notes App - Frontend Template
+----------------------------------
+This is a single-page template that handles all views of the application:
+1. Login View (?view=login): User authentication
+2. Register View (?view=register): New user registration
+3. Notes View (?view=notes): Main dashboard for managing notes
+4. Shared View (?view=shared): Public view for password-protected shared notes
+
+Template Features:
+- Responsive design for all devices
+- Client-side note filtering
+- Tag-based organization
+- Secure note sharing
+- AJAX operations for smooth user experience
+
+Note: This template uses Jinja2 templating engine with Flask
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secret Notes</title>
+    <!-- Load application styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -11,6 +31,28 @@
         <div style="background: #ffeeba; color: #856404; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ffeeba; text-align: center;">
             <strong>DEBUG:</strong> Template rendered successfully. If you see this, Flask and Jinja are working.
         </div>
+        {% if view == "register" %}
+        <!-- Registration View -->
+        <h2>Create Account</h2>
+        {% if error %}
+        <div class="error">
+            {{ error }}
+        </div>
+        {% endif %}
+        <form method="POST" action="{{ url_for('register') }}">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Choose a username" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Choose a password" required>
+            </div>
+            <button type="submit">Register</button>
+        </form>
+        <p class="support-text">
+            Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+        </p>
+        {% endif %}
+
         {% if view == "login" %}
         <!-- Login View -->
         <h2>Secret Notes</h2>
@@ -29,6 +71,7 @@
             <button type="submit">Login</button>
         </form>
         <p class="support-text">
+            Need an account? <a href="{{ url_for('register') }}">Register here</a><br>
             Need help? <a href="mailto:support@secretnotes.com">Contact support</a>
         </p>
         {% endif %}
@@ -42,6 +85,11 @@
             <input type="text" id="searchInput" placeholder="Search notes..." onkeyup="filterNotes()" class="search-input">
         </div>
 
+        <!-- User info -->
+        <div class="user-info">
+            <span>Welcome, {{ session.username }}!</span>
+        </div>
+        
         <form id="new-note-form">
             <div class="form-group">
                 <input type="text" id="note-title" placeholder="Note Title" required>
@@ -49,8 +97,18 @@
             <div class="form-group">
                 <textarea id="note-body" placeholder="Write your note here..." required></textarea>
             </div>
+            <div class="form-group">
+                <input type="text" id="note-tags" placeholder="Tags (comma separated)">
+                <small class="help-text">Example: personal, work, todo</small>
+            </div>
             <button type="submit">Add Note</button>
         </form>
+        
+        <!-- Tag filter -->
+        <div class="form-group search-group">
+            <input type="text" id="tagFilter" placeholder="Filter by tag..." class="search-input">
+            <div id="tagCloud" class="tag-cloud"></div>
+        </div>
 
         <div id="notes-container">
             <!-- Notes will be dynamically inserted here -->
@@ -64,15 +122,38 @@
             </div>
             <div id="share-url" style="display: none;">
                 <p>Share this URL:</p>
-                <input type="text" id="share-link" readonly>
+                <div class="share-url-group">
+                    <input type="text" id="share-link" readonly>
+                    <button onclick="copyShareLink()" class="copy-btn">Copy Link</button>
+                </div>
             </div>
             <button id="generate-share-link">Generate Share Link</button>
             <button onclick="closeShareModal()">Close</button>
+            
+            <script>
+            function copyShareLink() {
+                const linkInput = document.getElementById('share-link');
+                linkInput.select();
+                document.execCommand('copy');
+                alert('Link copied to clipboard!');
+            }
+            </script>
         </div>
         <div id="modal-backdrop" class="modal-backdrop" style="display: none;"></div>
 
         <script>
-            // Load notes when page loads
+            /*
+             * Notes Management System
+             * ----------------------
+             * This script handles all client-side functionality including:
+             * 1. Note CRUD operations via AJAX
+             * 2. Tag management and filtering
+             * 3. Search functionality
+             * 4. Share system
+             * 5. UI updates and interactions
+             */
+            
+            // Initialize application when DOM is ready
             document.addEventListener('DOMContentLoaded', loadNotes);
 
             // Handle new note submission
@@ -81,13 +162,17 @@
                 try {
                     const title = document.getElementById('note-title').value;
                     const body = document.getElementById('note-body').value;
+                    const tags = document.getElementById('note-tags').value
+                        .split(',')
+                        .map(tag => tag.trim())
+                        .filter(tag => tag); // Remove empty tags
 
                     const response = await fetch('/api/notes', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ title, body })
+                        body: JSON.stringify({ title, body, tags })
                     });
 
                     if (response.ok) {
@@ -115,14 +200,20 @@
                     container.innerHTML = '';
 
                     notes.forEach(note => {
+                        const tagsList = note.tags ? note.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : '';
                         container.insertAdjacentHTML('beforeend', `
-                        <div class="note-card" data-content="${note.title.toLowerCase()} ${note.body.toLowerCase()}">
+                        <div class="note-card" 
+                             data-content="${note.title.toLowerCase()} ${note.body.toLowerCase()}"
+                             data-tags="${(note.tags || []).join(',').toLowerCase()}">
                             <div class="note-actions">
                                 <button onclick="shareNote(${note.id})" class="share-btn">Share</button>
                                 <button onclick="deleteNote(${note.id})" class="delete-btn">Delete</button>
                             </div>
                             <h3 class="note-title">${note.title}</h3>
                             <p class="note-body">${note.body}</p>
+                            <div class="note-tags">
+                                ${tagsList}
+                            </div>
                             <div class="note-meta">
                                 <small>Created: ${new Date(note.created_at).toLocaleString()}</small>
                                 <br>
@@ -130,21 +221,70 @@
                             </div>
                         </div>
                     `);
+                    
+                    // Update tag cloud
+                    updateTagCloud(notes);
                     });
                 } catch (error) {
                     alert('Error: ' + error.message);
                 }
             }
 
-            // Filter notes
+            /*
+             * Filter Notes Function
+             * -------------------
+             * Filters displayed notes based on:
+             * 1. Content matching (title and body)
+             * 2. Tag matching
+             * Notes are hidden/shown based on both filters combined
+             */
             function filterNotes() {
-                const query = document.getElementById('searchInput').value.toLowerCase();
+                // Get current filter values
+                const contentQuery = document.getElementById('searchInput').value.toLowerCase();
+                const tagQuery = document.getElementById('tagFilter').value.toLowerCase();
                 const notes = document.querySelectorAll('.note-card');
+                
+                // Check each note against both filters
                 notes.forEach(note => {
                     const content = note.getAttribute('data-content');
-                    note.style.display = content.includes(query) ? '' : 'none';
+                    const tags = note.getAttribute('data-tags');
+                    const matchesContent = content.includes(contentQuery);
+                    const matchesTags = !tagQuery || tags.includes(tagQuery);
+                    note.style.display = (matchesContent && matchesTags) ? '' : 'none';  // Show only if both filters match
                 });
             }
+
+            /*
+             * Update Tag Cloud Function
+             * -----------------------
+             * Creates and updates the tag cloud visualization.
+             * Counts occurrences of each tag across all notes
+             * and displays them with size proportional to frequency.
+             */
+            function updateTagCloud(notes) {
+                const tagCounts = {};  // Store frequency of each tag
+                notes.forEach(note => {
+                    (note.tags || []).forEach(tag => {
+                        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                    });
+                });
+
+                const tagCloud = document.getElementById('tagCloud');
+                tagCloud.innerHTML = '';
+                Object.entries(tagCounts).forEach(([tag, count]) => {
+                    const tagSpan = document.createElement('span');
+                    tagSpan.className = 'tag';
+                    tagSpan.textContent = `${tag} (${count})`;
+                    tagSpan.onclick = () => {
+                        document.getElementById('tagFilter').value = tag;
+                        filterNotes();
+                    };
+                    tagCloud.appendChild(tagSpan);
+                });
+            }
+
+            // Add event listener for tag filter
+            document.getElementById('tagFilter').addEventListener('keyup', filterNotes);
 
             // Delete a note
             async function deleteNote(id) {
@@ -220,6 +360,29 @@
 
         {% if view == "shared" %}
         <!-- Shared Note View -->
+        {% if note %}
+        <!-- Display the shared note -->
+        <div class="shared-note">
+            <h2>{{ note.title }}</h2>
+            <div class="note-body">{{ note.body }}</div>
+            {% if note.tags %}
+            <div class="note-tags">
+                {% for tag in note.tags %}
+                <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="note-meta">
+                <small>Created: {{ note.created_at|datetime }}</small>
+                <br>
+                <small>Shared: {{ note.shared_at|datetime }}</small>
+            </div>
+            <p class="back-link">
+                <a href="{{ url_for('login') }}">Want to create your own notes? Login or register here</a>
+            </p>
+        </div>
+        {% else %}
+        <!-- Password prompt -->
         <h2>Access Protected Note 🔐</h2>
         {% if error %}
         <div class="error">
@@ -233,6 +396,7 @@
             </div>
             <button type="submit">View Note</button>
         </form>
+        {% endif %}
         {% endif %}
     </div>
 </body>

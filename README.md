@@ -1,5 +1,16 @@
 # 📒 Secret Notes App – Single Page Flask Application
 
+## 📖 About
+This is a modern, secure note-taking application built with Flask and JavaScript. It demonstrates best practices in web development including secure authentication, CRUD operations, and client-side interactivity.
+
+### 🎯 Key Learning Points
+- Flask route handling and authentication
+- Single-page application (SPA) architecture
+- JSON-based data persistence
+- Password hashing and security
+- AJAX for asynchronous operations
+- Tag-based organization system
+
 A secure and lightweight **Flask web app** to manage private notes with CRUD operations, password-protected sharing, and client-side search.
 
 This project uses **only one HTML template (`index.html`)** for all views, simplifying layout management.

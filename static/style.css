@@ -1,50 +1,69 @@
-/* Modern and clean styling for Secret Notes App */
+/*
+ * Secret Notes App Styles
+ * ----------------------
+ * A modern and clean design system using CSS variables for consistency.
+ * Features:
+ * 1. Responsive layout for all screen sizes
+ * 2. Roboto font for improved readability
+ * 3. CSS variables for easy theme customization
+ * 4. Smooth transitions and animations
+ * 5. Consistent spacing and alignment
+ */
+
+/* Import Roboto font for consistent typography */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
 
+/* Color palette and theme variables */
 :root {
-  --primary-color: #4a90e2;
-  --secondary-color: #2c3e50;
-  --background-color: #f5f6fa;
-  --danger-color: #e74c3c;
-  --success-color: #2ecc71;
+  --primary-color: #4a90e2;    /* Main brand color */
+  --secondary-color: #2c3e50;  /* Secondary brand color */
+  --background-color: #f5f6fa; /* Light background for contrast */
+  --danger-color: #e74c3c;     /* For delete/warning actions */
+  --success-color: #2ecc71;    /* For success states */
 }
 
+/* Search and filter input styling */
 .search-input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-    transition: border-color 0.3s;
+    width: 100%;                  /* Full width for better visibility */
+    padding: 12px;               /* Comfortable padding for text */
+    margin-bottom: 20px;         /* Space between elements */
+    border: 1px solid #ddd;      /* Subtle border */
+    border-radius: 4px;          /* Rounded corners */
+    font-size: 16px;            /* Readable font size */
+    transition: border-color 0.3s; /* Smooth focus transition */
 }
 
+/* Interactive state for better UX */
 .search-input:focus {
-    border-color: var(--primary-color);
-    outline: none;
+    border-color: var(--primary-color); /* Highlight on focus */
+    outline: none;                     /* Remove default focus outline */
 }
 
+/* Note metadata section styling */
 .note-meta {
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
+    font-size: 0.85rem;           /* Slightly smaller text for metadata */
+    color: #666;                  /* Subdued color for secondary info */
+    margin-top: 10px;            /* Space above metadata */
+    padding-top: 10px;           /* Space inside metadata section */
+    border-top: 1px solid #eee;   /* Subtle separator line */
 }
 
+/* Support text and links styling */
 .support-text {
-    margin-top: 20px;
-    text-align: center;
-    color: #666;
+    margin-top: 20px;            /* Space above support text */
+    text-align: center;          /* Center alignment */
+    color: #666;                 /* Subdued text color */
 }
 
+/* Support link styling */
 .support-text a {
-    color: var(--primary-color);
-    text-decoration: none;
+    color: var(--primary-color); /* Brand color for links */
+    text-decoration: none;       /* Remove underline by default */
 }
 
+/* Interactive link state */
 .support-text a:hover {
-    text-decoration: underline;
+    text-decoration: underline;  /* Show underline on hover */
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
